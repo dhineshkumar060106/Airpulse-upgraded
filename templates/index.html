@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AirSense — Global Air Quality Intelligence</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="navbar">
+  <div class="nav-logo">
+    <span class="logo-icon">◈</span>
+    <span class="logo-text">AirSense</span>
+  </div>
+  <div class="nav-links">
+    <a href="#globe-section" class="nav-link">Globe</a>
+    <a href="#predictor-section" class="nav-link">Predictor</a>
+    <a href="#models-section" class="nav-link">ML Models</a>
+    <a href="#health-section" class="nav-link">Health</a>
+    <button class="nav-btn about-btn" onclick="openAbout()">About Us</button>
+  </div>
+  <div class="nav-indicator"></div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-particles" id="heroParticles"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🌍 Real-time Global Intelligence</div>
+    <h1 class="hero-title">
+      Breathe Smarter<br/>
+      <span class="gradient-text">Live Safer</span>
+    </h1>
+    <p class="hero-subtitle">AI-powered air quality prediction across 195 countries. Real-time pollutant analysis with ML-driven health risk assessment.</p>
+    <div class="hero-stats">
+      <div class="stat-card"><span class="stat-num" data-target="195">0</span><span class="stat-label">Countries</span></div>
+      <div class="stat-card"><span class="stat-num" data-target="6">0</span><span class="stat-label">Pollutants</span></div>
+      <div class="stat-card"><span class="stat-num" data-target="3">0</span><span class="stat-label">ML Models</span></div>
+      <div class="stat-card"><span class="stat-num" data-target="98">0</span><span class="stat-label">% Accuracy</span></div>
+    </div>
+    <div class="hero-cta">
+      <button class="btn-primary" onclick="scrollTo('#globe-section')">Explore Globe</button>
+      <button class="btn-secondary" onclick="scrollTo('#predictor-section')">Try Predictor</button>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="aqi-ring" id="heroRing">
+      <div class="ring-label">GLOBAL AQI</div>
+      <div class="ring-value">72</div>
+      <div class="ring-status">Moderate</div>
+    </div>
+  </div>
+</section>
+
+<!-- GLOBE SECTION -->
+<section class="globe-section" id="globe-section">
+  <div class="section-header">
+    <span class="section-tag">INTERACTIVE GLOBE</span>
+    <h2>Air Quality <span class="gradient-text">Worldwide</span></h2>
+    <p>Hover over any country to explore real-time AQI data. Colors represent pollution intensity.</p>
+  </div>
+  <div class="globe-container">
+    <canvas id="globeCanvas"></canvas>
+    <div class="globe-tooltip" id="globeTooltip">
+      <div class="tooltip-country" id="tooltipCountry">—</div>
+      <div class="tooltip-aqi-row">
+        <span class="tooltip-label">AQI</span>
+        <span class="tooltip-aqi-val" id="tooltipAQI">—</span>
+      </div>
+      <div class="tooltip-status" id="tooltipStatus">—</div>
+      <div class="tooltip-pollutants" id="tooltipPollutants"></div>
+    </div>
+    <div class="globe-legend">
+      <div class="legend-title">AQI Scale</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#00e400"></span>Good (0-50)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#ffff00"></span>Moderate (51-100)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#ff7e00"></span>Unhealthy for Sensitive (101-150)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#ff0000"></span>Unhealthy (151-200)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#8f3f97"></span>Very Unhealthy (201-300)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#7e0023"></span>Hazardous (300+)</div>
+    </div>
+  </div>
+</section>
+
+<!-- PREDICTOR SECTION -->
+<section class="predictor-section" id="predictor-section">
+  <div class="section-header">
+    <span class="section-tag">AI PREDICTOR</span>
+    <h2>Input <span class="gradient-text">Pollutant Values</span></h2>
+    <p>Enter pollutant concentrations to get AQI prediction and health risk assessment.</p>
+  </div>
+
+  <div class="predictor-grid">
+    <!-- Input Panel -->
+    <div class="input-panel">
+      <div class="panel-header">
+        <span class="panel-icon">⚗️</span>
+        <span>Pollutant Input</span>
+      </div>
+      <div class="input-group">
+        <label>PM2.5 <span class="unit">(μg/m³)</span></label>
+        <div class="input-wrapper">
+          <input type="number" id="pm25" placeholder="0 – 500" min="0" max="500" step="0.1" value="35" />
+          <div class="input-bar" id="pm25Bar"></div>
+        </div>
+        <div class="pollutant-info">Fine particles ≤2.5 microns — penetrate deep lung tissue</div>
+      </div>
+      <div class="input-group">
+        <label>PM10 <span class="unit">(μg/m³)</span></label>
+        <div class="input-wrapper">
+          <input type="number" id="pm10" placeholder="0 – 600" min="0" max="600" step="0.1" value="60" />
+          <div class="input-bar" id="pm10Bar"></div>
+        </div>
+        <div class="pollutant-info">Coarse particles — irritate respiratory system</div>
+      </div>
+      <div class="input-group">
+        <label>NO₂ <span class="unit">(ppb)</span></label>
+        <div class="input-wrapper">
+          <input type="number" id="no2" placeholder="0 – 200" min="0" max="200" step="0.1" value="25" />
+          <div class="input-bar" id="no2Bar"></div>
+        </div>
+        <div class="pollutant-info">Nitrogen dioxide — combustion byproduct</div>
+      </div>
+      <div class="input-group">
+        <label>CO <span class="unit">(ppm)</span></label>
+        <div class="input-wrapper">
+          <input type="number" id="co" placeholder="0 – 50" min="0" max="50" step="0.01" value="1.2" />
+          <div class="input-bar" id="coBar"></div>
+        </div>
+        <div class="pollutant-info">Carbon monoxide — reduces oxygen delivery to organs</div>
+      </div>
+      <div class="input-group">
+        <label>O₃ <span class="unit">(ppb)</span></label>
+        <div class="input-wrapper">
+          <input type="number" id="o3" placeholder="0 – 200" min="0" max="200" step="0.1" value="40" />
+          <div class="input-bar" id="o3Bar"></div>
+        </div>
+        <div class="pollutant-info">Ground-level ozone — causes breathing difficulty</div>
+      </div>
+      <div class="input-group">
+        <label>SO₂ <span class="unit">(ppb)</span></label>
+        <div class="input-wrapper">
+          <input type="number" id="so2" placeholder="0 – 100" min="0" max="100" step="0.1" value="8" />
+          <div class="input-bar" id="so2Bar"></div>
+        </div>
+        <div class="pollutant-info">Sulfur dioxide — from fossil fuel combustion</div>
+      </div>
+
+      <div class="model-selector">
+        <label>Select ML Model</label>
+        <div class="model-chips">
+          <button class="chip active" data-model="xgboost">XGBoost</button>
+          <button class="chip" data-model="random_forest">Random Forest</button>
+          <button class="chip" data-model="linear_regression">Linear Regression</button>
+        </div>
+      </div>
+
+      <button class="predict-btn" id="predictBtn" onclick="runPrediction()">
+        <span class="btn-text">⚡ Analyze Air Quality</span>
+        <span class="btn-loader" style="display:none">Analyzing...</span>
+      </button>
+    </div>
+
+    <!-- Results Panel -->
+    <div class="results-panel" id="resultsPanel">
+      <div class="result-placeholder" id="resultPlaceholder">
+        <div class="placeholder-icon">🌬️</div>
+        <p>Enter pollutant values and click <strong>Analyze</strong> to see AI predictions</p>
+      </div>
+      <div class="result-content" id="resultContent" style="display:none">
+        <div class="aqi-display">
+          <div class="aqi-circle" id="aqiCircle">
+            <div class="aqi-number" id="aqiNumber">--</div>
+            <div class="aqi-label">AQI</div>
+          </div>
+          <div class="aqi-info">
+            <div class="aqi-category" id="aqiCategory">--</div>
+            <div class="aqi-description" id="aqiDescription">--</div>
+            <div class="confidence-bar">
+              <span>Model Confidence</span>
+              <div class="bar-track"><div class="bar-fill" id="confidenceFill"></div></div>
+              <span id="confidenceVal">--</span>
+            </div>
+          </div>
+        </div>
+        <div class="pollutant-breakdown">
+          <h4>Pollutant Analysis</h4>
+          <canvas id="pollutantChart" height="180"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ML MODELS SECTION -->
+<section class="models-section" id="models-section">
+  <div class="section-header">
+    <span class="section-tag">ML PERFORMANCE</span>
+    <h2>Model <span class="gradient-text">Metrics</span></h2>
+    <p>Compare performance of three machine learning models across different conditions.</p>
+  </div>
+  <div class="models-grid">
+    <div class="model-card" data-model="xgboost">
+      <div class="model-card-header">
+        <div class="model-icon xgb">XG</div>
+        <div>
+          <div class="model-name">XGBoost</div>
+          <div class="model-tag">Gradient Boosting</div>
+        </div>
+        <div class="model-badge best">Best</div>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric"><span class="metric-label">R² Score</span><span class="metric-value" data-val="0.97">—</span></div>
+        <div class="metric"><span class="metric-label">RMSE</span><span class="metric-value" data-val="4.2">—</span></div>
+        <div class="metric"><span class="metric-label">MAE</span><span class="metric-value" data-val="3.1">—</span></div>
+        <div class="metric"><span class="metric-label">MAPE</span><span class="metric-value" data-val="5.8">—</span></div>
+      </div>
+      <canvas id="xgboostChart" height="120"></canvas>
+    </div>
+    <div class="model-card" data-model="rf">
+      <div class="model-card-header">
+        <div class="model-icon rf">RF</div>
+        <div>
+          <div class="model-name">Random Forest</div>
+          <div class="model-tag">Ensemble Method</div>
+        </div>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric"><span class="metric-label">R² Score</span><span class="metric-value" data-val="0.94">—</span></div>
+        <div class="metric"><span class="metric-label">RMSE</span><span class="metric-value" data-val="5.8">—</span></div>
+        <div class="metric"><span class="metric-label">MAE</span><span class="metric-value" data-val="4.3">—</span></div>
+        <div class="metric"><span class="metric-label">MAPE</span><span class="metric-value" data-val="7.2">—</span></div>
+      </div>
+      <canvas id="rfChart" height="120"></canvas>
+    </div>
+    <div class="model-card" data-model="lr">
+      <div class="model-card-header">
+        <div class="model-icon lr">LR</div>
+        <div>
+          <div class="model-name">Linear Regression</div>
+          <div class="model-tag">Baseline Model</div>
+        </div>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric"><span class="metric-label">R² Score</span><span class="metric-value" data-val="0.82">—</span></div>
+        <div class="metric"><span class="metric-label">RMSE</span><span class="metric-value" data-val="11.4">—</span></div>
+        <div class="metric"><span class="metric-label">MAE</span><span class="metric-value" data-val="8.9">—</span></div>
+        <div class="metric"><span class="metric-label">MAPE</span><span class="metric-value" data-val="14.1">—</span></div>
+      </div>
+      <canvas id="lrChart" height="120"></canvas>
+    </div>
+  </div>
+  <div class="comparison-chart-wrap">
+    <h3>Model Comparison — Feature Importance</h3>
+    <canvas id="comparisonChart" height="300"></canvas>
+  </div>
+</section>
+
+<!-- HEALTH SECTION -->
+<section class="health-section" id="health-section">
+  <div class="section-header">
+    <span class="section-tag">HEALTH INTELLIGENCE</span>
+    <h2>Risk <span class="gradient-text">Assessment</span></h2>
+    <p>Personalized health recommendations based on AQI levels and pollutant profiles.</p>
+  </div>
+  <div class="health-grid" id="healthGrid">
+    <div class="health-card good">
+      <div class="health-aqi-range">AQI 0–50</div>
+      <div class="health-level">🟢 Good</div>
+      <div class="health-effects">Air quality is satisfactory. Little or no risk.</div>
+      <div class="health-measures">
+        <div class="measure">✅ All outdoor activities safe</div>
+        <div class="measure">✅ Normal exercise levels</div>
+        <div class="measure">✅ Windows can be open</div>
+      </div>
+    </div>
+    <div class="health-card moderate">
+      <div class="health-aqi-range">AQI 51–100</div>
+      <div class="health-level">🟡 Moderate</div>
+      <div class="health-effects">Unusually sensitive individuals may experience mild symptoms.</div>
+      <div class="health-measures">
+        <div class="measure">⚠️ Sensitive groups limit prolonged exertion</div>
+        <div class="measure">✅ Most activities remain safe</div>
+        <div class="measure">⚠️ Monitor for unusual symptoms</div>
+      </div>
+    </div>
+    <div class="health-card sensitive">
+      <div class="health-aqi-range">AQI 101–150</div>
+      <div class="health-level">🟠 Unhealthy for Sensitive Groups</div>
+      <div class="health-effects">People with asthma, heart disease at risk. General public less affected.</div>
+      <div class="health-measures">
+        <div class="measure">🚫 Children & elderly limit outdoor time</div>
+        <div class="measure">😷 Consider N95 mask outdoors</div>
+        <div class="measure">🏠 Use air purifier indoors</div>
+      </div>
+    </div>
+    <div class="health-card unhealthy">
+      <div class="health-aqi-range">AQI 151–200</div>
+      <div class="health-level">🔴 Unhealthy</div>
+      <div class="health-effects">Everyone may experience health effects. Sensitive groups severe effects.</div>
+      <div class="health-measures">
+        <div class="measure">🚫 Avoid heavy outdoor exertion</div>
+        <div class="measure">😷 Wear N95 mask when outdoors</div>
+        <div class="measure">💊 Keep rescue inhaler handy</div>
+        <div class="measure">🏠 Close windows, use AC/purifier</div>
+      </div>
+    </div>
+    <div class="health-card very-unhealthy">
+      <div class="health-aqi-range">AQI 201–300</div>
+      <div class="health-level">🟣 Very Unhealthy</div>
+      <div class="health-effects">Health alert: serious risk for everyone.</div>
+      <div class="health-measures">
+        <div class="measure">🚫 Avoid all outdoor activities</div>
+        <div class="measure">😷 N95 mandatory if going out</div>
+        <div class="measure">🏥 Seek medical attention if symptomatic</div>
+        <div class="measure">💧 Stay hydrated, use air purifier</div>
+      </div>
+    </div>
+    <div class="health-card hazardous">
+      <div class="health-aqi-range">AQI 300+</div>
+      <div class="health-level">☠️ Hazardous</div>
+      <div class="health-effects">Emergency conditions. Entire population at serious risk.</div>
+      <div class="health-measures">
+        <div class="measure">🚨 Stay indoors — seal windows & doors</div>
+        <div class="measure">🚫 No outdoor activities whatsoever</div>
+        <div class="measure">🏥 Emergency medical preparedness</div>
+        <div class="measure">📺 Follow official advisories</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Health Result (populated after prediction) -->
+  <div class="dynamic-health" id="dynamicHealth" style="display:none">
+    <div class="dh-header">
+      <span class="section-tag">YOUR PERSONAL RISK ASSESSMENT</span>
+      <h3>Based on Your Prediction</h3>
+    </div>
+    <div class="dh-content" id="dhContent"></div>
+  </div>
+</section>
+
+<!-- ABOUT MODAL -->
+<div class="modal-overlay" id="aboutModal" onclick="closeAbout(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeAbout()">✕</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" onclick="switchTab('about')">About Project</button>
+      <button class="modal-tab" onclick="switchTab('tech')">Technologies</button>
+      <button class="modal-tab" onclick="switchTab('team')">Team</button>
+    </div>
+    <div class="modal-body">
+      <div class="tab-content active" id="tab-about">
+        <div class="modal-icon">🌍</div>
+        <h2>AirSense</h2>
+        <p class="modal-subtitle">Global Air Quality Intelligence Platform</p>
+        <p>AirSense is a cutting-edge platform that combines real-time environmental data with advanced machine learning to provide actionable air quality insights for people worldwide.</p>
+        <div class="about-features">
+          <div class="af"><span>🌐</span><div><strong>Global Coverage</strong><br/>195+ countries monitored in real-time</div></div>
+          <div class="af"><span>🤖</span><div><strong>ML-Powered</strong><br/>Three models: XGBoost, Random Forest, Linear Regression</div></div>
+          <div class="af"><span>🏥</span><div><strong>Health First</strong><br/>Personalized risk assessment and protective measures</div></div>
+          <div class="af"><span>📊</span><div><strong>Multi-Pollutant</strong><br/>PM2.5, PM10, NO₂, CO, O₃, SO₂ analysis</div></div>
+        </div>
+        <p style="margin-top:1.5rem;color:var(--text-muted);font-size:0.9rem;">Built to raise awareness about air pollution and empower individuals with actionable data to protect their health and the health of their communities.</p>
+      </div>
+      <div class="tab-content" id="tab-tech">
+        <h2>Technology Stack</h2>
+        <div class="tech-stack">
+          <div class="tech-cat">
+            <div class="tech-cat-label">Frontend</div>
+            <div class="tech-items">
+              <div class="tech-item"><span class="tech-icon">🎨</span><div><strong>HTML5 / CSS3</strong><br/>Glassmorphism, animations, responsive grid</div></div>
+              <div class="tech-item"><span class="tech-icon">⚡</span><div><strong>Three.js (r128)</strong><br/>Interactive 3D globe with WebGL</div></div>
+              <div class="tech-item"><span class="tech-icon">📊</span><div><strong>Chart.js 4.4</strong><br/>Performance metrics & pollutant charts</div></div>
+              <div class="tech-item"><span class="tech-icon">🌐</span><div><strong>OpenWeatherMap API</strong><br/>Real-time air quality data</div></div>
+            </div>
+          </div>
+          <div class="tech-cat">
+            <div class="tech-cat-label">Backend</div>
+            <div class="tech-items">
+              <div class="tech-item"><span class="tech-icon">🐍</span><div><strong>Python / Flask</strong><br/>REST API, routing, data processing</div></div>
+              <div class="tech-item"><span class="tech-icon">🤖</span><div><strong>XGBoost</strong><br/>Gradient boosting — highest accuracy</div></div>
+              <div class="tech-item"><span class="tech-icon">🌲</span><div><strong>Scikit-learn</strong><br/>Random Forest & Linear Regression</div></div>
+              <div class="tech-item"><span class="tech-icon">🧮</span><div><strong>NumPy / Pandas</strong><br/>Data manipulation and feature engineering</div></div>
+              <div class="tech-item"><span class="tech-icon">📦</span><div><strong>Joblib</strong><br/>Model serialization and loading</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-content" id="tab-team">
+        <h2>Our Team</h2>
+        <p style="color:var(--text-muted);margin-bottom:2rem;">Dedicated researchers and engineers working at the intersection of environmental science and AI.</p>
+        <div class="team-grid">
+          <div class="team-card">
+            <div class="team-avatar" style="background:linear-gradient(135deg,#00d2ff,#0066ff)">DK</div>
+            <div class="team-name">Dhineshkumar S</div>
+            <div class="team-role">ML Engineer</div>
+            <div class="team-desc">XGBoost & Random Forest model development</div>
+          </div>
+          <div class="team-card">
+            <div class="team-avatar" style="background:linear-gradient(135deg,#00ff88,#00b366)">SA</div>
+            <div class="team-name">Sabarish Atapaka</div>
+            <div class="team-role">Data Scientist</div>
+            <div class="team-desc">Pollutant data analysis & feature engineering</div>
+          </div>
+          <div class="team-card">
+            <div class="team-avatar" style="background:linear-gradient(135deg,#ff6b6b,#ff0040)">DK</div>
+            <div class="team-name">Dhineshkumar</div>
+            <div class="team-role">Full-Stack Developer</div>
+            <div class="team-desc">Flask API, 3D globe & frontend architecture</div>
+          </div>
+          <div class="team-card">
+            <div class="team-avatar" style="background:linear-gradient(135deg,#ffd700,#ff8c00)">KS</div>
+            <div class="team-name">Krithik sai</div>
+            <div class="team-role">Environmental Scientist</div>
+            <div class="team-desc">Health impact research & AQI standards</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-brand">
+      <span class="logo-icon">◈</span>
+      <span class="logo-text">AirSense</span>
+      <p>Making clean air a data-driven mission.</p>
+    </div>
+    <div class="footer-links">
+      <a href="#globe-section">Globe</a>
+      <a href="#predictor-section">Predictor</a>
+      <a href="#models-section">ML Models</a>
+      <a href="#health-section">Health</a>
+    </div>
+    <div class="footer-note">
+      Data sourced from OpenWeatherMap API & EPA standards.<br/>
+      © 2025 AirSense. Built for a cleaner world. 🌿
+    </div>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/globe.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
